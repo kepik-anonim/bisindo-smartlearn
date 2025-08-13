@@ -14,7 +14,7 @@ import gdown  # Tambahan untuk download dari Google Drive
 # ======== Tambahan untuk download model dari Google Drive ========
 file_id = "17lqJ51NLGALZ2SZ6DB7RudVah8etIHtp"  # ID file di Google Drive
 url = f"https://drive.google.com/uc?id={file_id}"
-output = "model-bisindo.pkl"
+output = "model_bisindo.pkl"
 
 if not os.path.exists(output):
     with st.spinner("Downloading model from Google Drive..."):
@@ -39,8 +39,10 @@ if 'quiz_index' not in st.session_state:
     st.session_state.quiz_index = 0
 if 'quiz_files' not in st.session_state:
     quiz_dir = "Contoh"
-    st.session_state.quiz_files = random.sample([f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))],
-                                                len([f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))]))
+    st.session_state.quiz_files = random.sample(
+        [f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))],
+        len([f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))])
+    )
 if 'quiz_options' not in st.session_state:
     st.session_state.quiz_options = {}
 
@@ -115,9 +117,13 @@ elif st.session_state.page == 'camera':
     st.markdown("### 🖐️ Practice Sign Language - Snapshot Mode")
     col_cam, col_btn = st.columns([3, 1])
     with col_cam:
-        ctx = webrtc_streamer(key="cam_stream", video_transformer_factory=SnapshotTransformer,
-                              media_stream_constraints={"video": {"width": 640, "height": 480}, "audio": False},
-                              async_transform=True, mode=WebRtcMode.SENDRECV)
+        ctx = webrtc_streamer(
+            key="cam_stream", 
+            video_transformer_factory=SnapshotTransformer,
+            media_stream_constraints={"video": {"width": 640, "height": 480}, "audio": False},
+            async_transform=True, 
+            mode=WebRtcMode.SENDRECV
+        )
     with col_btn:
         if ctx.video_transformer:
             if st.button("📸 Capture with Timer"):
@@ -136,7 +142,7 @@ elif st.session_state.page == 'camera':
 elif st.session_state.page == 'quiz':
     set_background("background menu.png")
     st.markdown("### 🧩 Guess the Sign Letter")
-    quiz_dir = r"C:/Contoh"
+    quiz_dir = "Contoh"
     if st.session_state.quiz_index >= len(st.session_state.quiz_files):
         st.success(f"Quiz complete! Your score: {st.session_state.score}/{len(st.session_state.quiz_files)}")
     else:
@@ -168,7 +174,6 @@ elif st.session_state.page == 'quiz':
 
 elif st.session_state.page == 'examples':
     set_background("background menu.png")
-    
     st.markdown("### 🔤 A-Z Sign Language Examples")
     files = sorted([f for f in os.listdir("Contoh") if f.endswith((".jpg", ".png"))])
     for file in files:

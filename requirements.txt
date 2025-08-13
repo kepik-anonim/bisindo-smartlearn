@@ -1,8 +1,8 @@
 streamlit
-gdown
-joblib
+streamlit-webrtc
+opencv-python-headless
 numpy
-pandas
-scikit-learn
-opencv-python
 Pillow
+joblib
+gdown
+scikit-learn
