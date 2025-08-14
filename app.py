@@ -101,10 +101,18 @@ class SnapshotTransformer(VideoTransformerBase):
 def navigation_pane():
     if st.session_state.show_nav:
         with st.sidebar:
-            if st.button("🏠 Home", key="nav_home"): st.session_state.page = 'menu'
-            if st.button("📷 Learn with Camera", key="nav_cam"): st.session_state.page = 'camera'
-            if st.button("🧩 Quiz", key="nav_quiz"): st.session_state.page = 'quiz'
-            if st.button("🔤 Examples", key="nav_examples"): st.session_state.page = 'examples'
+            if st.button("🏠 Home", key="nav_home"):
+                st.session_state.page = 'menu'
+                st.experimental_rerun()
+            if st.button("📷 Learn with Camera", key="nav_cam"):
+                st.session_state.page = 'camera'
+                st.experimental_rerun()
+            if st.button("🧩 Quiz", key="nav_quiz"):
+                st.session_state.page = 'quiz'
+                st.experimental_rerun()
+            if st.button("🔤 Examples", key="nav_examples"):
+                st.session_state.page = 'examples'
+                st.experimental_rerun()
 
 # Floating menu button
 if st.button("☰", key="menu_btn_click"):
@@ -120,11 +128,17 @@ if st.session_state.page == 'menu':
     </div>""", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("📷 Learn with Camera", use_container_width=True): st.session_state.page = 'camera'
+        if st.button("📷 Learn with Camera", use_container_width=True):
+            st.session_state.page = 'camera'
+            st.experimental_rerun()
     with col2:
-        if st.button("🧩 Quiz", use_container_width=True): st.session_state.page = 'quiz'
+        if st.button("🧩 Quiz", use_container_width=True):
+            st.session_state.page = 'quiz'
+            st.experimental_rerun()
     with col3:
-        if st.button("🔤 A-Z Examples", use_container_width=True): st.session_state.page = 'examples'
+        if st.button("🔤 A-Z Examples", use_container_width=True):
+            st.session_state.page = 'examples'
+            st.experimental_rerun()
 
 elif st.session_state.page == 'camera':
     set_background("background menu.png")
@@ -187,6 +201,7 @@ elif st.session_state.page == 'quiz':
 
             if st.button("Next Question"):
                 st.session_state.quiz_index += 1
+                st.experimental_rerun()
 
 elif st.session_state.page == 'examples':
     set_background("background menu.png")
