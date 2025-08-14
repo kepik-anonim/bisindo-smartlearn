@@ -9,7 +9,8 @@ import joblib
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, WebRtcMode
 import streamlit.components.v1 as components
 import random
-import gdown  # Tambahan untuk download dari Google Drive
+import gdown
+import zipfile  # Tambahan untuk ekstrak ZIP
 
 # ======== Tambahan untuk download model dari Google Drive ========
 file_id = "17lqJ51NLGALZ2SZ6DB7RudVah8etIHtp"  # ID file di Google Drive
@@ -19,6 +20,17 @@ output = "model_bisindo.pkl"
 if not os.path.exists(output):
     with st.spinner("Downloading model from Google Drive..."):
         gdown.download(url, output, quiet=False)
+# ================================================================
+
+# ======== Ekstrak folder Contoh dari ZIP jika belum ada ========
+quiz_zip = "Contoh.zip"
+quiz_dir = "Contoh"
+if not os.path.exists(quiz_dir):
+    if os.path.exists(quiz_zip):
+        with zipfile.ZipFile(quiz_zip, 'r') as zip_ref:
+            zip_ref.extractall(".")
+    else:
+        st.warning("File Contoh.zip tidak ditemukan. Quiz tidak bisa dijalankan jika folder 'Contoh' tidak ada.")
 # ================================================================
 
 # Load model and preprocessing tools
@@ -38,11 +50,13 @@ if 'score' not in st.session_state:
 if 'quiz_index' not in st.session_state:
     st.session_state.quiz_index = 0
 if 'quiz_files' not in st.session_state:
-    quiz_dir = "Contoh"
-    st.session_state.quiz_files = random.sample(
-        [f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))],
-        len([f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))])
-    )
+    if os.path.exists(quiz_dir):
+        st.session_state.quiz_files = random.sample(
+            [f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))],
+            len([f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))])
+        )
+    else:
+        st.session_state.quiz_files = []
 if 'quiz_options' not in st.session_state:
     st.session_state.quiz_options = {}
 
@@ -142,39 +156,44 @@ elif st.session_state.page == 'camera':
 elif st.session_state.page == 'quiz':
     set_background("background menu.png")
     st.markdown("### 🧩 Guess the Sign Letter")
-    quiz_dir = "Contoh"
-    if st.session_state.quiz_index >= len(st.session_state.quiz_files):
-        st.success(f"Quiz complete! Your score: {st.session_state.score}/{len(st.session_state.quiz_files)}")
+    if not st.session_state.quiz_files:
+        st.error("Folder 'Contoh' tidak ditemukan atau kosong.")
     else:
-        file = st.session_state.quiz_files[st.session_state.quiz_index]
-        true_label = os.path.splitext(file)[0].upper()
-        st.image(os.path.join(quiz_dir, file), width=200)
-
-        if st.session_state.quiz_index not in st.session_state.quiz_options:
-            opts = random.sample([chr(i) for i in range(65, 91) if chr(i) != true_label], 3) + [true_label]
-            random.shuffle(opts)
-            st.session_state.quiz_options[st.session_state.quiz_index] = opts
+        if st.session_state.quiz_index >= len(st.session_state.quiz_files):
+            st.success(f"Quiz complete! Your score: {st.session_state.score}/{len(st.session_state.quiz_files)}")
         else:
-            opts = st.session_state.quiz_options[st.session_state.quiz_index]
+            file = st.session_state.quiz_files[st.session_state.quiz_index]
+            true_label = os.path.splitext(file)[0].upper()
+            st.image(os.path.join(quiz_dir, file), width=200)
 
-        ans = st.radio("Choose the letter:", opts, key=f"quiz_radio_{st.session_state.quiz_index}")
-
-        if st.button("Submit"):
-            if ans == true_label:
-                st.success("✅ Correct!")
-                st.balloons()
-                components.html('<audio autoplay><source src="https://www.soundjay.com/human/kids-yeah.mp3" type="audio/mpeg"></audio>', height=0)
-                st.session_state.score += 1
+            if st.session_state.quiz_index not in st.session_state.quiz_options:
+                opts = random.sample([chr(i) for i in range(65, 91) if chr(i) != true_label], 3) + [true_label]
+                random.shuffle(opts)
+                st.session_state.quiz_options[st.session_state.quiz_index] = opts
             else:
-                st.error(f"❌ Wrong! The correct answer is **{true_label}**")
-                components.html('<audio autoplay><source src="https://www.soundjay.com/human/kids-oh.mp3" type="audio/mpeg"></audio>', height=0)
+                opts = st.session_state.quiz_options[st.session_state.quiz_index]
 
-        if st.button("Next Question"):
-            st.session_state.quiz_index += 1
+            ans = st.radio("Choose the letter:", opts, key=f"quiz_radio_{st.session_state.quiz_index}")
+
+            if st.button("Submit"):
+                if ans == true_label:
+                    st.success("✅ Correct!")
+                    st.balloons()
+                    components.html('<audio autoplay><source src="https://www.soundjay.com/human/kids-yeah.mp3" type="audio/mpeg"></audio>', height=0)
+                    st.session_state.score += 1
+                else:
+                    st.error(f"❌ Wrong! The correct answer is **{true_label}**")
+                    components.html('<audio autoplay><source src="https://www.soundjay.com/human/kids-oh.mp3" type="audio/mpeg"></audio>', height=0)
+
+            if st.button("Next Question"):
+                st.session_state.quiz_index += 1
 
 elif st.session_state.page == 'examples':
     set_background("background menu.png")
     st.markdown("### 🔤 A-Z Sign Language Examples")
-    files = sorted([f for f in os.listdir("Contoh") if f.endswith((".jpg", ".png"))])
-    for file in files:
-        st.image(os.path.join("Contoh", file), width=300, caption=f"Letter: {os.path.splitext(file)[0].upper()}")
+    if os.path.exists(quiz_dir):
+        files = sorted([f for f in os.listdir(quiz_dir) if f.endswith((".jpg", ".png"))])
+        for file in files:
+            st.image(os.path.join(quiz_dir, file), width=300, caption=f"Letter: {os.path.splitext(file)[0].upper()}")
+    else:
+        st.error("Folder 'Contoh' tidak ditemukan.")
